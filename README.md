@@ -6,6 +6,7 @@
 * First install docker.
 * ```sudo docker run -it fedora /bin/bash```
 * `yum install mingw64-gtk3 go glib2-devel`
+* `dnf install llvm clang make gtk3-devel`
 * `bash -c "sed -i -e 's/-Wl,-luuid/-luuid/g' /usr/x86_64-w64-mingw32/sys-root/mingw/lib/pkgconfig/gdk-3.0.pc"`
 * Setup git in container to clone, this repo.
 * `cd root`
