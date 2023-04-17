@@ -4,30 +4,57 @@
 
 ## Building - Using docker:
 * First install docker.
-* ```sudo docker run -it fedora /bin/bash```
-* ```
+```
+sudo docker run -it fedora /bin/bash
+```
+
+```
 yum install mingw64-gtk3 go glib2-devel
 ```
-* ```
+
+```
 dnf install llvm clang make gtk3-devel
 ```
-* ```
+
+```
 bash -c "sed -i -e 's/-Wl,-luuid/-luuid/g' /usr/x86_64-w64-mingw32/sys-root/mingw/lib/pkgconfig/gdk-3.0.pc"
 ```
 * Setup git in container to clone, this repo.
-* ```
+
+```
 cd root
 ```
+
 ```
  mkdir go go/src go/bin go/pkg
 ```
-* `cd go/src`
+
+```
+cd go/src
+```
 * Get program from github, and CD to it.
-* `PKG_CONFIG_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/pkgconfig CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go install -v github.com/gotk3/gotk3/gtk` #This will take about 8 minutes. 
-* `CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -ldflags -H=windowsgui` #Compile
-* `yes | cp -r /usr/x86_64-w64-mingw32/sys-root/mingw/*` . #Get gtk libs
-* `sudo docker ps -alq` #get id from current session image
-* `sudo docker cp <image-id>:/root/go/src/Union/union Documentos/union`
+* The next step will take about 8 minutes. 
+```
+PKG_CONFIG_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/pkgconfig CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go install -v github.com/gotk3/gotk3/gtk
+```
+
+* Compiling to windows:
+```
+CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc GOOS=windows GOARCH=amd64 go build -ldflags -H=windowsgui
+```
+* Get gtk libs:
+```
+yes | cp -r /usr/x86_64-w64-mingw32/sys-root/mingw/*
+```
+* get id from current session image:
+```
+sudo docker ps -alq
+```
+* Copy your program from container to your local machine:
+```
+sudo docker cp <image-id>:/root/go/src/Union/union Documentos/union
+```
+* Remember to set the correct permissions of the folder to allow your user to open it and copy it. 
 
 # Install:
 * Install the [
