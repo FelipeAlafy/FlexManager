@@ -13,7 +13,7 @@ yum install mingw64-gtk3 go glib2-devel
 ```
 
 ```
-dnf install llvm clang make gtk3-devel
+dnf install llvm clang make gtk3-devel mingw64-gcc-12.2.1-8.fc38.x86_64
 ```
 
 ```
