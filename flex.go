@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/FelipeAlafy/Flex/database"
 	"github.com/FelipeAlafy/Flex/handler"
 	"github.com/FelipeAlafy/Flex/ui"
 	"github.com/gotk3/gotk3/glib"
@@ -12,6 +13,8 @@ import (
 func main() {
 	//Runnable folder
 	os.Mkdir("Runnable", 0700)
+
+	database.Run()
 
 	app, err := gtk.ApplicationNew("com.github.FelipeAlafy.FlexManager", glib.APPLICATION_FLAGS_NONE)
 	handler.Error("ui/flex.go >> Line 10", err)

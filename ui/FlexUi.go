@@ -18,6 +18,8 @@ func OnActivate(app *gtk.Application) {
 
 	win.SetDefaultSize(900, 700)
 	win.SetPosition(gtk.WIN_POS_CENTER)
+	win.SetIconFromFile("union_logo.jpg")
+
 	bar, hbb, searchbar := getHeaderbar()
 
 	addClient = hbb[0]
