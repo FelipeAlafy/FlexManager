@@ -1,18 +1,20 @@
 package ui
 
 import (
+	"github.com/FelipeAlafy/Flex/controller"
 	"github.com/FelipeAlafy/Flex/handler"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/jinzhu/gorm"
 )
 
 var addClient *gtk.Button
 var addProject *gtk.Button
 var editButton *gtk.Button
 
-var openedAddClientPage = false
-var openedAddProjectPage = false
+var OpenedAddClientPage = false
+var OpenedAddProjectPage = false
 
-func OnActivate(app *gtk.Application) {
+func OnActivate(app *gtk.Application, db *gorm.DB) {
 	win, err := gtk.ApplicationWindowNew(app)
 	handler.Error("ui/handler/FlexUi.go >> Line 11", err)
 
@@ -28,13 +30,15 @@ func OnActivate(app *gtk.Application) {
 
 	win.SetTitlebar(bar)
 
-	ui(win, searchbar)
+	ui(win, searchbar, db)
 	win.ShowAll()
 }
 
-func ui(win *gtk.ApplicationWindow, searchbar *gtk.SearchEntry) {
+func ui(win *gtk.ApplicationWindow, searchbar *gtk.SearchEntry, db *gorm.DB) {
 	notebook, err := gtk.NotebookNew()
 	handler.Error("ui/handler/FlexUi.go >> Line 19", err)
+
+	controller.InitSearch(searchbar, notebook, db, editButton)
 
 	maketabs := func (name string, notebook *gtk.Notebook) (*gtk.Box) {
 		l, err := gtk.LabelNew(name)
@@ -46,15 +50,17 @@ func ui(win *gtk.ApplicationWindow, searchbar *gtk.SearchEntry) {
 
 		tab, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 2)
 		handler.Error("ui/FlexUi.go/ func Ui() >> maketabs >> tab for " + name, err)
-
+		
 		tab.PackStart(l, true, true, 2)
 		tab.PackEnd(close, false, true, 0)
 		tab.ShowAll()
 
 		close.Connect("clicked", func ()  {
-			if name == "Cadastrar Cliente" {openedAddClientPage = false}
-			if name == "Criar um Projeto" {openedAddProjectPage = false}
-			notebook.RemovePage(notebook.GetCurrentPage())
+			if name == "Cadastrar Cliente" {OpenedAddClientPage = false}
+			if name == "Criar um Projeto" {OpenedAddProjectPage = false}
+			current := notebook.GetCurrentPage()
+			if current == 0 {return}
+			notebook.RemovePage(current)
 		})
 
 		return tab
@@ -69,30 +75,17 @@ func ui(win *gtk.ApplicationWindow, searchbar *gtk.SearchEntry) {
 	win.Add(notebook)
 
 	addClient.Connect("clicked", func() {
-		if openedAddClientPage {return}
-		notebook.AppendPage(addClientPage(), maketabs("Cadastrar Cliente", notebook))
+		if OpenedAddClientPage {return}
+		notebook.AppendPage(addClientPage(db), maketabs("Cadastrar Cliente", notebook))
 		notebook.ShowAll()
-		openedAddClientPage = true
+		OpenedAddClientPage = true
 	})
 
 	addProject.Connect("clicked", func() {
-		if openedAddProjectPage {return}
-		notebook.AppendPage(addProjectPage(), maketabs("Criar um Projeto", notebook))		
+		if OpenedAddProjectPage {return}
+		notebook.AppendPage(addProjectPage(db), maketabs("Criar um Projeto", notebook))		
 		notebook.ShowAll()
-		openedAddProjectPage = true
-	})
-
-	editButton.Connect("clicked", func ()  {
-		notebook.AppendPage(Result(), maketabs("Resultado", notebook))
-		notebook.ShowAll()
-	})
-
-	searchbar.Connect("activate", func ()  {
-		v, _ := searchbar.GetText()
-		if len(v) > 2 {
-			println("Starting the searching for clients and projects >> ", v)
-			popup(searchbar)
-		}
+		OpenedAddProjectPage = true
 	})
 }
 

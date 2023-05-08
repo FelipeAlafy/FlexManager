@@ -1,11 +1,14 @@
 package ui
 
 import (
+	"github.com/FelipeAlafy/Flex/controller"
 	"github.com/FelipeAlafy/Flex/handler"
+	"github.com/FelipeAlafy/Flex/widgets"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/jinzhu/gorm"
 )
 
-func addClientPage() (*gtk.Box) {
+func addClientPage(db *gorm.DB) *gtk.Box {
 	scrollable, err := gtk.ScrolledWindowNew(nil, nil)
 	handler.Error("ui/Client.go >> scrollable, gtk.ScrolledWindow: ", err)
 
@@ -23,13 +26,13 @@ func addClientPage() (*gtk.Box) {
 	handler.Error("ui/Client.go >> Line 35", err)
 
 	//Fields
-	preForm("Nome", form)
-	preForm("CPF/CNPJ", form)
-	preForm("RG", form)
-	preForm("Data de nascimento", form)
-	preForm("Sexo", form)
-	preFormComboBox("Tipo de pessoa", []string {"Fisica", "Juridica"}, form)
-	preFormComboBox("Estado Civil", []string {"solteiro", "casado", "separado", "divorciado", "viúvo"}, form)
+	n := widgets.PreForm("Nome", form)
+	c := widgets.PreForm("CPF/CNPJ", form)
+	r := widgets.PreForm("RG", form)
+	nas := widgets.PreFormCalendar("Data de nascimento", form)
+	s := widgets.PreFormComboBox("Sexo", []string{"Feminino", "Masculino", "Indefinido"}, form)
+	tp := widgets.PreFormComboBox("Tipo de pessoa", []string {"Fisica", "Juridica"}, form)
+	ec := widgets.PreFormComboBox("Estado Civil", []string {"solteiro", "casado", "separado", "divorciado", "viúvo"}, form)
 
 	clientDataExpander.Add(form)
 	handlers.PackStart(clientDataExpander, false, true, 10)
@@ -42,19 +45,23 @@ func addClientPage() (*gtk.Box) {
 	handler.Error("ui/Client.go >> form2, gtk.Box: ", err)
 
 	//Fields
-	preForm("Telefone", form2)
-	preForm("WhatsApp", form2)
-	preForm("Outro Telefone", form2)
-	preForm("E-mail", form2)
-	preForm("Pais Natal", form2)
-	preForm("Estado Natal", form2)
-	preForm("Cidade Natal", form2)
+	t := widgets.PreForm("Telefone", form2)
+	w := widgets.PreFormCheckBox("WhatsApp", form2)
+	ta := widgets.PreForm("Outro Telefone", form2)
+	e := widgets.PreForm("E-mail", form2)
+	pn := widgets.PreForm("Pais Natal", form2)
+	en := widgets.PreForm("Estado Natal", form2)
+	cn := widgets.PreForm("Cidade Natal", form2)
+
+	save, err := gtk.ButtonNewWithLabel("Cadastrar o cliente")
+	box.PackEnd(save, false, false, 10)
+	handler.Error("ui/Client.go >> savem gtk.Button: ", err)
 
 	clientAddressExpander.Add(form2)
 	handlers.PackStart(clientAddressExpander, false, true, 10)
 
-
 	scrollable.Add(handlers)
 	box.PackStart(scrollable, true, true, 0)
+	controller.ClientInit(n, c, r, nas, s, tp, ec, t, w, ta, e, pn, en, cn, save, db)
 	return box
 }

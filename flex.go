@@ -14,10 +14,10 @@ func main() {
 	//Runnable folder
 	os.Mkdir("Runnable", 0700)
 
-	database.Run()
+	db := database.Run()
 
 	app, err := gtk.ApplicationNew("com.github.FelipeAlafy.FlexManager", glib.APPLICATION_FLAGS_NONE)
 	handler.Error("ui/flex.go >> Line 10", err)
-	app.Connect("activate", func() { ui.OnActivate(app) })
+	app.Connect("activate", func() { ui.OnActivate(app, db) })
 	os.Exit(app.Run(os.Args))
 }
