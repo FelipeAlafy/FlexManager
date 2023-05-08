@@ -1,4 +1,4 @@
-package ui
+package widgets
 
 import (
 	"github.com/FelipeAlafy/Flex/handler"
@@ -6,7 +6,7 @@ import (
 )
 
 
-func preForm(name string, box *gtk.Box) *gtk.Entry {
+func PreForm(name string, box *gtk.Box) *gtk.Entry {
 	form, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
 	handler.Error("ui/widgets.go >> preForm >> Line 46, while creating a form for "+name, err)
 
@@ -24,7 +24,7 @@ func preForm(name string, box *gtk.Box) *gtk.Entry {
 	return entry
 }
 
-func preFormComboBox(name string, options []string, box *gtk.Box) (*gtk.ComboBoxText) {
+func PreFormComboBox(name string, options []string, box *gtk.Box) (*gtk.ComboBoxText) {
 	form, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
 	handler.Error("ui/widgets.go >> preForm >> Line 46, while creating a form for "+name, err)
 
@@ -46,7 +46,7 @@ func preFormComboBox(name string, options []string, box *gtk.Box) (*gtk.ComboBox
 	return entry
 }
 
-func preFormComboBoxWithAnEntry(name string, options []string, box *gtk.Box) (*gtk.ComboBoxText) {
+func PreFormComboBoxWithAnEntry(name string, options []string, box *gtk.Box) (*gtk.ComboBoxText) {
 	form, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
 	handler.Error("ui/widgets.go >> preForm >> Line 46, while creating a form for "+name, err)
 
@@ -68,7 +68,7 @@ func preFormComboBoxWithAnEntry(name string, options []string, box *gtk.Box) (*g
 	return entry
 }
 
-func preFormCalendar(name string, box *gtk.Box) (*gtk.Calendar) {
+func PreFormCalendar(name string, box *gtk.Box) (*gtk.Calendar) {
 	form, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
 	handler.Error("ui/widgets.go >> preForm >> Line 46, while creating a form for "+name, err)
 
@@ -86,7 +86,7 @@ func preFormCalendar(name string, box *gtk.Box) (*gtk.Calendar) {
 	return entry
 }
 
-func preFormTextView(name string, box *gtk.Box) (*gtk.TextView) {
+func PreFormTextView(name string, box *gtk.Box) (*gtk.TextView) {
 	frame, _ := gtk.FrameNew("")
 	scrollable, _ := gtk.ScrolledWindowNew(nil, nil)
 
@@ -113,7 +113,7 @@ func preFormTextView(name string, box *gtk.Box) (*gtk.TextView) {
 	return view
 }
 
-func preFormCheckBox(name string, box *gtk.Box) *gtk.CheckButton {
+func PreFormCheckBox(name string, box *gtk.Box) *gtk.CheckButton {
 	form, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
 	handler.Error("ui/widgets.go >> preForm >> Line 46, while creating a form for "+name, err)
 

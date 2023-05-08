@@ -1,11 +1,14 @@
 package ui
 
 import (
+	"github.com/FelipeAlafy/Flex/controller"
 	"github.com/FelipeAlafy/Flex/handler"
+	"github.com/FelipeAlafy/Flex/widgets"
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/jinzhu/gorm"
 )
 
-func addProjectPage() (*gtk.Box) {
+func addProjectPage(db *gorm.DB) (*gtk.Box) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	handler.Error("ui/Project.go >> box, gtk.BoxNew: ", err)
 	
@@ -22,20 +25,22 @@ func addProjectPage() (*gtk.Box) {
 	handler.Error("ui/Project.go >> form, gtk.BoxNew: ", err)
 
 	//Fields
-	preFormComboBoxWithAnEntry("Cliente", 
-	[]string {"Felipe", "Alafy", "Rodrigues", "Silva"}, form) // This array need to be replaced with the data from database
-	preForm("Cidade", form)
-	preForm("Estado", form)
-	preForm("Bairro", form)
-	preForm("Endereço", form)
-	preForm("Número", form)
-	preForm("Complemento", form)
-	preFormComboBox("Status do projeto", 
+	clients := widgets.PreFormComboBox("Cliente", 
+	[]string {}, form) // This array need to be replaced with the data from database
+	cep := widgets.PreForm("CEP", form)
+	cidade := widgets.PreForm("Cidade", form)
+	estado := widgets.PreForm("Estado", form)
+	bairro := widgets.PreForm("Bairro", form)
+	endereco := widgets.PreForm("Endereço", form)
+	numero := widgets.PreForm("Número", form)
+	complemento := widgets.PreForm("Complemento", form)
+	status := widgets.PreFormComboBox("Status do projeto", 
 	[]string {"Inicial", "Pagamento Inicial Confirmado", "Em produção", "Instalado", "Pagamento Final Confirmado", "Finalizado"}, 
 	form)
-	preFormTextView("Observações", form)
-	preForm("Valor do projeto", form)
-	preFormCheckBox("Projeto por contrato", form)
+	observacoes := widgets.PreFormTextView("Observações", form)
+	valor := widgets.PreForm("Valor do projeto", form)
+	contrato := widgets.PreFormCheckBox("Projeto por contrato", form)
+	controller.InitProject(db, handlers, clients, cep, cidade, estado, bairro, endereco, numero, complemento, status, observacoes, valor, contrato)
 	
 	//Funcionarios envolvidos, table with the name of the emploees
 
@@ -43,8 +48,15 @@ func addProjectPage() (*gtk.Box) {
 	handler.Error("ui/Project.go >> addEnviroment, gtk.Button", err)
 	form.PackStart(addEnviroment, true, true, 10)
 
+	//Variables
+	Envs := []controller.EnvFields{}
+	Expanders := []*gtk.Expander{}
+
 	addEnviroment.Connect("clicked", func ()  {
-		handlers.PackStart(addExpanderForEnviroment(), false, false, 10)
+		ex, env := addExpanderForEnviroment()
+		Expanders = append(Expanders, ex)
+		Envs = append(Envs, env)
+		handlers.PackStart(ex, false, false, 10)
 		handlers.ShowAll()
 	})
 
@@ -53,20 +65,30 @@ func addProjectPage() (*gtk.Box) {
 
 	scrollable.Add(handlers)
 	box.PackStart(scrollable, true, true, 0)
+
+	saveBtn, err := gtk.ButtonNewWithLabel("Salvar este Projeto")
+	handler.Error("ui/Project.go >> addProjectPage() >> saveBtn", err)
+	saveBtn.Connect("clicked", func ()  {
+		controller.SaveProject(Envs, Expanders)
+	})
+
+	box.PackEnd(saveBtn, false, false, 10)
 	return box
 }
 
-func addExpanderForEnviroment() (*gtk.Expander) {
+func addExpanderForEnviroment() (*gtk.Expander, controller.EnvFields) {
 	expander, err := gtk.ExpanderNew("Ambiente")
 	handler.Error("ui/Project.go >> addExpanderForEnviroment >> expander, gtk.Expander", err)
 	
 	form, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
 	handler.Error("ui/Project.go >> addExpanderForEnviroment >> form, gtk.Box", err)
 
-	value := preForm("Nome do Ambiente", form)
-	preFormTextView("Materiais", form)
-	preFormCalendar("Data de fabricação", form)
-	preFormCalendar("Data de instalação", form)
+	value := widgets.PreForm("Nome do Ambiente", form)
+	materials := widgets.PreFormTextView("Materiais", form)
+	production := widgets.PreFormCalendar("Data de fabricação", form)
+	installation := widgets.PreFormCalendar("Data de instalação", form)
+
+	env := controller.EnvFields{Name: value, Materials: materials, Production: production, Installation: installation}
 	
 	value.Connect("changed", func() {
 		s, _ := value.GetText()
@@ -74,5 +96,5 @@ func addExpanderForEnviroment() (*gtk.Expander) {
 	})
 
 	expander.Add(form)
-	return expander
+	return expander, env
 }

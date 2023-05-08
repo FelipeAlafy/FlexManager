@@ -20,6 +20,12 @@ func (e Enviroment) New(db *gorm.DB, p Project) {
 }
 
 //Edit Enviroment
-func (old_env Enviroment) Update(db *gorm.DB, new_env Enviroment) {
-	db.Model(&old_env).Update(new_env)
+func (e Enviroment) Save(db *gorm.DB) {
+	db.Save(&e)
+}
+
+func (p Project) SearchForEnviroments(db *gorm.DB) []Enviroment {
+	enviroments := []Enviroment{}
+	db.Where("project_id = ?", p.ID).Find(&enviroments)
+	return enviroments
 }

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -31,7 +32,15 @@ func (c *Client) New(db *gorm.DB) {
 	db.Create(&c)
 }
 
+func (c *Client) Save(db *gorm.DB) {
+	db.Save(&c)
+	for _, p := range c.Projects {
+		p.Save(db)
+	}
+}
+
 func GetAllClients(db *gorm.DB) []Client {
+	println(">>> db/GetAllClients()")
 	clients := []Client{}
 	db.Find(&clients)
 	return clients
@@ -39,7 +48,13 @@ func GetAllClients(db *gorm.DB) []Client {
 
 func (c Client) Search(db *gorm.DB) []Client {
 	clients := []Client{}
-	db.Where("nome LIKE ?", c.Nome).Find(&clients)
+	name := fmt.Sprint("%", c.Nome, "%")
+	db.Where("nome LIKE ?", name).Find(&clients)
+
+	for c := 0; c < len(clients); c++ {
+		clients[c].Projects = clients[c].SearchProjects(db)
+	}
+
 	return clients
 }
 

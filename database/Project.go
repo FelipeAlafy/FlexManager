@@ -7,6 +7,7 @@ import (
 type Project struct {
 	gorm.Model
 	ClientId		uint
+	CEP				string
 	Cidade 			string
 	Estado 			string
 	Bairro 			string
@@ -26,9 +27,20 @@ func GetAllProjects(db *gorm.DB) []Project {
 	return projects
 }
 
-func (c Client) SearchProjects(db *gorm.DB) Client {
+func (c Client) SearchProjects(db *gorm.DB) []Project {
 	projects := []Project{}
 	db.Where("client_id = ?", c.ID).Find(&projects)
-	c.Projects = projects
-	return c
+
+	for p := 0; p < len(projects); p++ {
+		projects[p].Enviroments = projects[p].SearchForEnviroments(db)
+	}
+
+	return projects
+}
+
+func (p Project) Save(db *gorm.DB) {
+	db.Save(&p)
+	for _, e := range p.Enviroments {
+		e.Save(db)
+	}
 }
