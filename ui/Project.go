@@ -1,11 +1,20 @@
 package ui
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/FelipeAlafy/Flex/controller"
 	"github.com/FelipeAlafy/Flex/handler"
 	"github.com/FelipeAlafy/Flex/widgets"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/jinzhu/gorm"
+)
+
+const (
+	COLUMN_PAYMENT_TYPE = iota
+	COLUMN_VALUE
+	COLUMN_OBSERVATION
 )
 
 func addProjectPage(db *gorm.DB) (*gtk.Box) {
@@ -25,8 +34,7 @@ func addProjectPage(db *gorm.DB) (*gtk.Box) {
 	handler.Error("ui/Project.go >> form, gtk.BoxNew: ", err)
 
 	//Fields
-	clients := widgets.PreFormComboBox("Cliente", 
-	[]string {}, form) // This array need to be replaced with the data from database
+	clients := widgets.PreFormComboBox("Cliente", []string {}, form) // This array need to be replaced with the data from database
 	cep := widgets.PreForm("CEP", form)
 	cidade := widgets.PreForm("Cidade", form)
 	estado := widgets.PreForm("Estado", form)
@@ -38,12 +46,25 @@ func addProjectPage(db *gorm.DB) (*gtk.Box) {
 	[]string {"Inicial", "Pagamento Inicial Confirmado", "Em produção", "Instalado", "Pagamento Final Confirmado", "Finalizado"}, 
 	form)
 	observacoes := widgets.PreFormTextView("Observações", form)
-	valor := widgets.PreForm("Valor do projeto", form)
 	contrato := widgets.PreFormCheckBox("Projeto por contrato", form)
-	controller.InitProject(db, handlers, clients, cep, cidade, estado, bairro, endereco, numero, complemento, status, observacoes, valor, contrato)
+	
+	//Payment
+	storage, value, payCombo, obs, add  := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
+	
+	add.Connect("clicked", func ()  {
+		paytype := payCombo.GetActiveText()
+		s, _ := value.GetText()
+		o, _ := obs.GetText()
+		if paytype == "" || s == "" {return}
+		widgets.AddRow(storage, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION, paytype, s, o)
+	})
+
+	//End
+
+	controller.InitProject(db, handlers, clients, cep, cidade, estado, bairro, endereco,
+		 numero, complemento, status, observacoes, contrato)
 	
 	//Funcionarios envolvidos, table with the name of the emploees
-
 	addEnviroment, err := gtk.ButtonNewWithLabel("Adicionar um ambiente a este projeto")
 	handler.Error("ui/Project.go >> addEnviroment, gtk.Button", err)
 	form.PackStart(addEnviroment, true, true, 10)
@@ -69,7 +90,7 @@ func addProjectPage(db *gorm.DB) (*gtk.Box) {
 	saveBtn, err := gtk.ButtonNewWithLabel("Salvar este Projeto")
 	handler.Error("ui/Project.go >> addProjectPage() >> saveBtn", err)
 	saveBtn.Connect("clicked", func ()  {
-		controller.SaveProject(Envs, Expanders)
+		controller.SaveProject(Envs, Expanders, storage)
 	})
 
 	box.PackEnd(saveBtn, false, false, 10)
@@ -97,4 +118,12 @@ func addExpanderForEnviroment() (*gtk.Expander, controller.EnvFields) {
 
 	expander.Add(form)
 	return expander, env
+}
+
+func ToFloat(entry *gtk.Entry) float64 {
+	entryValue, _ := entry.GetText()
+	parser := strings.ReplaceAll(entryValue, ",", ".")
+	v, err := strconv.ParseFloat(parser, 64)
+	handler.Error("ui/widgets.go >> toFloat while trying to convert", err)
+	return v
 }

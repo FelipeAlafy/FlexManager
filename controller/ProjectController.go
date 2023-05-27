@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"strconv"
+
 	"github.com/FelipeAlafy/Flex/database"
 	"github.com/FelipeAlafy/Flex/handler"
 	"github.com/gotk3/gotk3/gtk"
@@ -12,6 +14,12 @@ type EnvFields struct {
 	Materials 		*gtk.TextView
 	Production 		*gtk.Calendar
 	Installation 	*gtk.Calendar
+}
+
+type PayFields struct {
+	Value 			*gtk.Entry
+	Way 			*gtk.ComboBoxText
+	Observacoes 	*gtk.TextView
 }
 
 var dbProject 		*gorm.DB
@@ -28,6 +36,7 @@ var observacoes 	*gtk.TextView
 var valor 			*gtk.Entry
 var contrato 		*gtk.CheckButton
 var handlers		*gtk.Box
+var PayForm			*gtk.Box
 
 
 func InitProject(
@@ -43,7 +52,6 @@ func InitProject(
 	co *gtk.Entry,
 	s *gtk.ComboBoxText,
 	o *gtk.TextView,
-	v *gtk.Entry,
 	con *gtk.CheckButton) {
 	dbProject = gormDB
 	handlers = hand
@@ -57,7 +65,6 @@ func InitProject(
 	complemento = co
 	status = s
 	observacoes = o
-	valor = v
 	contrato = con
 
 	SyncClientComboBox()
@@ -81,7 +88,7 @@ func SyncClientComboBox() {
 	}
 }
 
-func getModelForProject(envsBase []EnvFields) database.Project {
+func getModelForProject(envsBase []EnvFields, listStore *gtk.ListStore) database.Project {
 	model := database.Project{
 		CEP: getDataFromEntry(cep),
 		Cidade: getDataFromEntry(cidade),
@@ -92,9 +99,9 @@ func getModelForProject(envsBase []EnvFields) database.Project {
 		Complemento: getDataFromEntry(complemento),
 		Status: getDataFromComboBox(status),
 		Observacoes: getDataFromTextView(observacoes),
-		ValorProjeto: toFloat(getDataFromEntry(valor)),
 		Contrato: getDataFromCheckBox(contrato),
 		Enviroments: getModelForEnviroments(envsBase),
+		Payments: getModelForPayments(listStore),
 	}
 	return model
 }
@@ -114,8 +121,38 @@ func getModelForEnviroments(envs []EnvFields) []database.Enviroment {
 	return enviroments
 }
 
-func SaveProject(envsBase []EnvFields, expanders []*gtk.Expander) {
-	model := getModelForProject(envsBase)
+func getModelForPayments(store *gtk.ListStore) []database.Payment {
+	payments := []database.Payment{}
+
+	store.ForEach(func(model *gtk.TreeModel, path *gtk.TreePath, iter *gtk.TreeIter) bool {
+		payType, _ := model.GetValue(iter, 0)
+		value, _ := model.GetValue(iter, 1)
+		obs, _ := model.GetValue(iter, 2)
+
+		va, _ := value.GetString()
+		
+		p, _ := payType.GetString()
+		v, _ := strconv.ParseFloat(va, 64)
+		o, _ := obs.GetString()
+		
+
+		println("Type: ", p)
+		println("Value: ", v)
+		println("Observation: ", o)
+		payment := database.Payment{
+			Value: v,
+			Way: p,
+			Observation: o,
+		}
+		payments = append(payments, payment)
+		return true
+	})
+
+	return payments
+}
+
+func SaveProject(envsBase []EnvFields, expanders []*gtk.Expander, listStorage *gtk.ListStore) {
+	model := getModelForProject(envsBase, listStorage)
 	name := getDataFromComboBox(clientBox)
 	client := database.Client{Nome: name}
 	cs := client.Search(dbProject)
@@ -124,7 +161,7 @@ func SaveProject(envsBase []EnvFields, expanders []*gtk.Expander) {
 		c = v
 	}
 	c.AddProject(dbProject, model)
-	clearProjectPage(expanders)
+	clearProjectPage(expanders, listStorage)
 }
 
 func getClients() []database.Client {
@@ -133,7 +170,7 @@ func getClients() []database.Client {
 	return c
 }
 
-func clearProjectPage(expanders []*gtk.Expander) {
+func clearProjectPage(expanders []*gtk.Expander, storage *gtk.ListStore) {
 	clientBox.SetActive(-1)
 	cep.SetText("")
 	cidade.SetText("")
@@ -150,4 +187,6 @@ func clearProjectPage(expanders []*gtk.Expander) {
 	for _, e := range expanders {
 		handlers.Remove(e)
 	}
+
+	storage.Clear()
 }

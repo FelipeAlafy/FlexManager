@@ -1,10 +1,13 @@
 package widgets
 
 import (
+	"strings"
+	"unicode"
+
 	"github.com/FelipeAlafy/Flex/handler"
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
-
 
 func PreForm(name string, box *gtk.Box) *gtk.Entry {
 	form, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
@@ -129,4 +132,101 @@ func PreFormCheckBox(name string, box *gtk.Box) *gtk.CheckButton {
 	box.PackStart(form, true, true, 10)
 
 	return entry
+}
+
+func PreFormForPay(form *gtk.Box, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION int) (*gtk.ListStore, *gtk.Entry, *gtk.ComboBoxText, *gtk.Entry, *gtk.Button) {
+	frame, err := gtk.FrameNew("Pagamento")
+	handler.Error("ui/widgets.go >> PreFormForPay >> frame", err)
+	
+	valor, err := gtk.EntryNew()
+	handler.Error("ui/widgets.go >> PreFormForPay >> valor", err)
+	valor.SetPlaceholderText("Digite o valor")
+
+	obs, _ := gtk.EntryNew()
+	handler.Error("ui/widgets.go >> PreFormForPay >> obs", err)
+	obs.SetPlaceholderText("Observação do pagamento")
+	obs.SetTooltipText("Este campo existe para que\nsejam colocadas observações\nExemplo: Coloque em quantas parcelas o\nprojeto foi feita.")
+	
+	valor.Connect("changed", func ()  {
+		s, _ := valor.GetText()
+		for _, c := range s {
+			if c == ',' {continue}
+			if c == '.' {continue}
+			if unicode.IsDigit(c) {continue}
+			valor.SetText(strings.Replace(s, string(c), "", 1))
+		}
+	})
+
+	payBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 5)
+	headerPayBox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 5)
+
+	payCombo := PreFormComboBox("Forma de Pagemento: ", []string{"Dinheiro", "Cartão Crédito", "Cartão Débito", "Pix", "Boleto", "Cheque", "Depósito"}, headerPayBox)
+	add, _ := gtk.ButtonNewFromIconName("list-add-symbolic", gtk.ICON_SIZE_BUTTON)
+	
+	headerPayBox.PackStart(valor, false, false, 10)
+	headerPayBox.PackStart(payCombo, false, false, 10)
+	headerPayBox.PackStart(obs, true, true, 10)
+	headerPayBox.PackStart(add, false, false, 10)
+	payBox.PackStart(headerPayBox, true, true, 5)
+
+	//Tree
+	storage, err := gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
+	handler.Error("ui/widgets.go >> PreFormForPay >> storage", err)
+	
+	tree, remove := setupTreeView(storage, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
+	headerPayBox.PackStart(remove, false, false, 0)
+	payBox.PackStart(tree, false, true, 10)
+
+	frame.Add(payBox)
+	form.PackStart(frame, true, true, 10)
+	return storage, valor, payCombo, obs, add
+}
+
+func createColumn(name string, id int) *gtk.TreeViewColumn {
+	render, err := gtk.CellRendererTextNew()
+	handler.Error("ui/Widgets.go >> createColumn >> render", err)
+
+	column, err := gtk.TreeViewColumnNewWithAttribute(name, render, "text", id)
+	handler.Error("ui/Widgets.go >> createColumn >> column", err)
+	return column
+}
+
+func setupTreeView(listStore *gtk.ListStore, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION int) (*gtk.TreeView, *gtk.Button) {
+	tree, err := gtk.TreeViewNew()
+	handler.Error("ui/Widgets.go >> setupTreeView >> tree", err)
+
+	tree.AppendColumn(createColumn("Tipo de Pagamento", 0))
+	tree.AppendColumn(createColumn("Valor", 1))
+	tree.AppendColumn(createColumn("Observações", 2))
+
+	tree.SetModel(listStore)
+	tree.SetHExpand(true)
+
+	// getValue := func (c *glib.Value) string {
+	// 	s, err := c.GetString()
+	// 	if err != nil {return ""}
+	// 	return s
+	// }
+
+	remove, _ := gtk.ButtonNewFromIconName("app-remove-symbolic", gtk.ICON_SIZE_BUTTON)
+	remove.SetSensitive(false)
+
+	selected, _ := tree.GetSelection()
+	selected.SetMode(gtk.SELECTION_SINGLE)
+	selected.Connect("changed", func (selection *gtk.TreeSelection)  {
+		remove.SetSensitive(true)
+		remove.Connect("clicked", func () {
+			
+		})
+	})
+
+	return tree, remove
+}
+
+func AddRow(list *gtk.ListStore, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION int, payType, value, obs string) {
+	iter := list.Append()
+
+	err := list.Set(iter, []int{0, 1, 2},
+					[]interface{}{payType, value, obs})
+	handler.Error("ui/widgets.go >> AddRow >> err", err)
 }

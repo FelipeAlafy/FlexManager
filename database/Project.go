@@ -19,6 +19,7 @@ type Project struct {
 	ValorProjeto 	float64
 	Contrato 		bool
 	Enviroments		[]Enviroment
+	Payments		[]Payment
 }
 
 func GetAllProjects(db *gorm.DB) []Project {
@@ -42,5 +43,9 @@ func (p Project) Save(db *gorm.DB) {
 	db.Save(&p)
 	for _, e := range p.Enviroments {
 		e.Save(db)
+	}
+	for _, pm := range p.Payments {
+		println(pm.Value)
+		pm.Save(db)
 	}
 }
