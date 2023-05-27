@@ -209,16 +209,39 @@ func setupTreeView(listStore *gtk.ListStore, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, 
 	// }
 
 	remove, _ := gtk.ButtonNewFromIconName("app-remove-symbolic", gtk.ICON_SIZE_BUTTON)
-	remove.SetSensitive(false)
 
 	selected, _ := tree.GetSelection()
 	selected.SetMode(gtk.SELECTION_SINGLE)
-	selected.Connect("changed", func (selection *gtk.TreeSelection)  {
-		remove.SetSensitive(true)
-		remove.Connect("clicked", func () {
-			
+	remove.Connect("clicked", func () {
+		_, selectedIter, ok := selected.GetSelected()
+		if !ok {return}
+		
+		//Data From Selected Iter
+		if !listStore.IterIsValid(selectedIter) {return}
+		payType1, _ := listStore.GetValue(selectedIter, 0)
+		value1, _ := listStore.GetValue(selectedIter, 1)
+		pt1S, _ := payType1.GetString()
+		v1S, err := value1.GetString()
+		if err != nil {return}
+
+		listStore.ForEach(func(model *gtk.TreeModel, path *gtk.TreePath, iter *gtk.TreeIter) bool {
+			//Data From Next Iter
+			payType2, _ := listStore.GetValue(iter, 0)
+			value2, _ := listStore.GetValue(iter, 1)
+			pt2S, _ := payType2.GetString()
+			v2S, _ := value2.GetString()
+
+			if pt1S == pt2S && v1S == v2S {
+				listStore.Remove(iter)
+				selected.UnselectAll()
+				pt1S = ""
+				v1S = ""
+				return true
+			}
+			return false
 		})
 	})
+	
 
 	return tree, remove
 }
