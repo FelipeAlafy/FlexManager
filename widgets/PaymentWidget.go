@@ -5,6 +5,7 @@ import (
 	"unicode"
 
 	"github.com/FelipeAlafy/Flex/handler"
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 )
@@ -93,7 +94,10 @@ func setupTreeView(listStore *gtk.ListStore, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, 
 	tree.SetModel(listStore)
 	tree.SetHExpand(true)
 
-	remove, _ := gtk.ButtonNewFromIconName("app-remove-symbolic", gtk.ICON_SIZE_BUTTON)
+	pixbuf, _ := gdk.PixbufNewFromFileAtScale("resources/trash.svg", 30, 30, true)
+	image, _ := gtk.ImageNewFromPixbuf(pixbuf)
+	remove, _ := gtk.ButtonNew()
+	remove.SetImage(image)
 
 	selected, _ := tree.GetSelection()
 	selected.SetMode(gtk.SELECTION_SINGLE)
