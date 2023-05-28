@@ -23,7 +23,7 @@ var email *gtk.Entry
 var paisNatal *gtk.Entry
 var estadoNatal *gtk.Entry
 var cidadeNatal *gtk.Entry
-var save *gtk.Button
+var edit *gtk.Button
 var db *gorm.DB
 
 func ClientInit(n *gtk.Entry, c *gtk.Entry, r *gtk.Entry, nas *gtk.Calendar, s *gtk.ComboBoxText,
@@ -44,10 +44,10 @@ func ClientInit(n *gtk.Entry, c *gtk.Entry, r *gtk.Entry, nas *gtk.Calendar, s *
 	paisNatal = pn
 	estadoNatal = en
 	cidadeNatal = cn
-	save = button
+	edit = button
 	db = database
 
-	save.Connect("clicked", func () {
+	edit.Connect("clicked", func () {
 		println("Trying to save a client into database")
 		model := getModelForClient()
 		SaveClient(model)

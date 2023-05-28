@@ -5,7 +5,6 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-
 func PreForm(name string, box *gtk.Box) *gtk.Entry {
 	form, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
 	handler.Error("ui/widgets.go >> preForm >> Line 46, while creating a form for "+name, err)

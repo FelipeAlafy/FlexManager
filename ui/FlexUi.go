@@ -3,6 +3,7 @@ package ui
 import (
 	"github.com/FelipeAlafy/Flex/controller"
 	"github.com/FelipeAlafy/Flex/handler"
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/jinzhu/gorm"
 )
@@ -20,7 +21,9 @@ func OnActivate(app *gtk.Application, db *gorm.DB) {
 
 	win.SetDefaultSize(900, 700)
 	win.SetPosition(gtk.WIN_POS_CENTER)
-	win.SetIconFromFile("union_logo.jpg")
+
+	pixbuf, _ := gdk.PixbufNewFromFile("resources/logo.jpeg")
+	win.SetIcon(pixbuf)
 
 	bar, hbb, searchbar := getHeaderbar()
 
@@ -66,24 +69,28 @@ func ui(win *gtk.ApplicationWindow, searchbar *gtk.SearchEntry, db *gorm.DB) {
 		return tab
 	} 
 
+	homeBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
 	lbl1, _ := gtk.LabelNew("Inicio")
-	con, _ := gtk.ButtonNewWithLabel("This is an example of page")
+	pixbuf, _ := gdk.PixbufNewFromFileAtScale("resources/pageUnderConstruction.svg", 400, 400, true)
+	image, _ := gtk.ImageNewFromPixbuf(pixbuf)
+	underconstructionlabel, _ := gtk.LabelNew("Está página ainda está em construção.\nPor favor clique nos icones na barra superior para acessar as funções.")
+	homeBox.PackStart(image, true, true, 10)
+	homeBox.PackStart(underconstructionlabel, true, false, 10)
 
-	notebook.AppendPage(con, lbl1)
-	notebook.GetCurrentPage()
+	notebook.AppendPage(homeBox, lbl1)
 
 	win.Add(notebook)
 
 	addClient.Connect("clicked", func() {
 		if OpenedAddClientPage {return}
-		notebook.AppendPage(addClientPage(db), maketabs("Cadastrar Cliente", notebook))
+		notebook.AppendPage(addClientPage(db, editButton, notebook), maketabs("Cadastrar Cliente", notebook))
 		notebook.ShowAll()
 		OpenedAddClientPage = true
 	})
 
 	addProject.Connect("clicked", func() {
 		if OpenedAddProjectPage {return}
-		notebook.AppendPage(addProjectPage(db), maketabs("Criar um Projeto", notebook))		
+		notebook.AppendPage(addProjectPage(db, editButton, notebook), maketabs("Criar um Projeto", notebook))		
 		notebook.ShowAll()
 		OpenedAddProjectPage = true
 	})

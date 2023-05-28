@@ -1,6 +1,9 @@
 package ui
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/FelipeAlafy/Flex/controller"
 	"github.com/FelipeAlafy/Flex/handler"
 	"github.com/FelipeAlafy/Flex/widgets"
@@ -8,7 +11,27 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func addProjectPage(db *gorm.DB) (*gtk.Box) {
+const (
+	COLUMN_PAYMENT_TYPE = iota
+	COLUMN_VALUE
+	COLUMN_OBSERVATION
+)
+
+func addProjectPage(db *gorm.DB, edit *gtk.Button, notebook *gtk.Notebook) (*gtk.Box) {
+	thisPage := notebook.GetNPages()
+
+	notebook.Connect("switch-page", func (_ *gtk.Notebook, _ *gtk.Widget, index int)  {
+		if index == thisPage {
+			image, err := gtk.ImageNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
+			handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
+			edit.SetImage(image)
+		} else {
+			image, err := gtk.ImageNewFromIconName("document-edit-symbolic", gtk.ICON_SIZE_BUTTON)
+			handler.Error("controller/ResultController.go >> notebook.Connect() >> image new from icon name", err)
+			edit.SetImage(image)
+		}
+	})
+
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	handler.Error("ui/Project.go >> box, gtk.BoxNew: ", err)
 	
@@ -25,8 +48,7 @@ func addProjectPage(db *gorm.DB) (*gtk.Box) {
 	handler.Error("ui/Project.go >> form, gtk.BoxNew: ", err)
 
 	//Fields
-	clients := widgets.PreFormComboBox("Cliente", 
-	[]string {}, form) // This array need to be replaced with the data from database
+	clients := widgets.PreFormComboBox("Cliente", []string {}, form) // This array need to be replaced with the data from database
 	cep := widgets.PreForm("CEP", form)
 	cidade := widgets.PreForm("Cidade", form)
 	estado := widgets.PreForm("Estado", form)
@@ -38,15 +60,28 @@ func addProjectPage(db *gorm.DB) (*gtk.Box) {
 	[]string {"Inicial", "Pagamento Inicial Confirmado", "Em produção", "Instalado", "Pagamento Final Confirmado", "Finalizado"}, 
 	form)
 	observacoes := widgets.PreFormTextView("Observações", form)
-	valor := widgets.PreForm("Valor do projeto", form)
 	contrato := widgets.PreFormCheckBox("Projeto por contrato", form)
-	controller.InitProject(db, handlers, clients, cep, cidade, estado, bairro, endereco, numero, complemento, status, observacoes, valor, contrato)
+	
+	//Payment
+	storage, value, payCombo, obs, add, vl  := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
+	
+	add.Connect("clicked", func ()  {
+		paytype := payCombo.GetActiveText()
+		s, _ := value.GetText()
+		o, _ := obs.GetText()
+		if paytype == "" || s == "" {return}
+		widgets.AddRow(storage, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION, paytype, s, o, vl)
+	})
+
+	//End
+
+	controller.InitProject(db, handlers, clients, cep, cidade, estado, bairro, endereco,
+		 numero, complemento, status, observacoes, contrato, value, payCombo, obs, vl)
 	
 	//Funcionarios envolvidos, table with the name of the emploees
-
 	addEnviroment, err := gtk.ButtonNewWithLabel("Adicionar um ambiente a este projeto")
 	handler.Error("ui/Project.go >> addEnviroment, gtk.Button", err)
-	form.PackStart(addEnviroment, true, true, 10)
+	form.PackEnd(addEnviroment, true, true, 10)
 
 	//Variables
 	Envs := []controller.EnvFields{}
@@ -62,17 +97,15 @@ func addProjectPage(db *gorm.DB) (*gtk.Box) {
 
 	projectExpander.Add(form)
 	handlers.PackStart(projectExpander, false, false, 10)
+	projectExpander.SetExpanded(true)
 
 	scrollable.Add(handlers)
 	box.PackStart(scrollable, true, true, 0)
 
-	saveBtn, err := gtk.ButtonNewWithLabel("Salvar este Projeto")
-	handler.Error("ui/Project.go >> addProjectPage() >> saveBtn", err)
-	saveBtn.Connect("clicked", func ()  {
-		controller.SaveProject(Envs, Expanders)
+	edit.Connect("clicked", func ()  {
+		controller.SaveProject(Envs, Expanders, storage)
 	})
 
-	box.PackEnd(saveBtn, false, false, 10)
 	return box
 }
 
@@ -97,4 +130,12 @@ func addExpanderForEnviroment() (*gtk.Expander, controller.EnvFields) {
 
 	expander.Add(form)
 	return expander, env
+}
+
+func ToFloat(entry *gtk.Entry) float64 {
+	entryValue, _ := entry.GetText()
+	parser := strings.ReplaceAll(entryValue, ",", ".")
+	v, err := strconv.ParseFloat(parser, 64)
+	handler.Error("ui/widgets.go >> toFloat while trying to convert", err)
+	return v
 }

@@ -1,3 +1,4 @@
+//Client.go
 package database
 
 import (
@@ -40,7 +41,6 @@ func (c *Client) Save(db *gorm.DB) {
 }
 
 func GetAllClients(db *gorm.DB) []Client {
-	println(">>> db/GetAllClients()")
 	clients := []Client{}
 	db.Find(&clients)
 	return clients

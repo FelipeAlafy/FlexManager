@@ -30,17 +30,15 @@ func Result(c database.Client, db *gorm.DB, edit *gtk.Button, notebook *gtk.Note
 	sexo := widgets.PreFormComboBox("Sexo", []string {"Feminino", "Masculino", "Indefinido"}, clientForm)
 	tp := widgets.PreFormComboBox("Tipo de pessoa", []string {"Fisica", "Juridica"}, clientForm)
 	ec := widgets.PreFormComboBox("Estado Civil", []string {"solteiro", "casado", "separado", "divorciado", "viúvo"}, clientForm)
-	telefone := widgets.PreForm("Telefone", clientForm)
+	telefone, whatsapp := widgets.PreFormContactWhatsapp("Telefone", clientForm)
 	w := widgets.PreFormCheckBox("WhatsApp", clientForm)
 	ta := widgets.PreForm("Outro Telefone", clientForm)
 	email := widgets.PreForm("E-mail", clientForm)
 	pn := widgets.PreForm("Pais Natal", clientForm)
 	en := widgets.PreForm("Estado Natal", clientForm)
 	cn := widgets.PreForm("Cidade Natal", clientForm)
-	save, _ := gtk.ButtonNewWithLabel("Salvar")
 	client.Add(clientForm)
 	handlers.PackStart(client, true, true, 10)
-	handlers.PackEnd(save, false, false, 0)
 
 	scrollable.Add(handlers)
 	box.PackStart(scrollable, true, true, 0)
@@ -56,6 +54,7 @@ func Result(c database.Client, db *gorm.DB, edit *gtk.Button, notebook *gtk.Note
 		EstadoCivil: ec,
 		Telefone:    telefone,
 		WhatsApp:    w,
+		WhatsAppBtn: whatsapp,
 		TelefoneAlt: ta,
 		Email:       email,
 		PaisNatal:   pn,
@@ -64,7 +63,7 @@ func Result(c database.Client, db *gorm.DB, edit *gtk.Button, notebook *gtk.Note
 		Project:     make([]ProjectFields, len(c.Projects)),
 	}
 
-	InitResult(ClientField, c, handlers, db, save, edit, notebook)
+	InitResult(ClientField, c, handlers, db, edit, notebook)
 
 	return box
 }
