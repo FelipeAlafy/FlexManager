@@ -17,7 +17,21 @@ const (
 	COLUMN_OBSERVATION
 )
 
-func addProjectPage(db *gorm.DB) (*gtk.Box) {
+func addProjectPage(db *gorm.DB, edit *gtk.Button, notebook *gtk.Notebook) (*gtk.Box) {
+	thisPage := notebook.GetNPages()
+
+	notebook.Connect("switch-page", func (_ *gtk.Notebook, _ *gtk.Widget, index int)  {
+		if index == thisPage {
+			image, err := gtk.ImageNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
+			handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
+			edit.SetImage(image)
+		} else {
+			image, err := gtk.ImageNewFromIconName("document-edit-symbolic", gtk.ICON_SIZE_BUTTON)
+			handler.Error("controller/ResultController.go >> notebook.Connect() >> image new from icon name", err)
+			edit.SetImage(image)
+		}
+	})
+
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	handler.Error("ui/Project.go >> box, gtk.BoxNew: ", err)
 	
@@ -49,25 +63,25 @@ func addProjectPage(db *gorm.DB) (*gtk.Box) {
 	contrato := widgets.PreFormCheckBox("Projeto por contrato", form)
 	
 	//Payment
-	storage, value, payCombo, obs, add  := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
+	storage, value, payCombo, obs, add, vl  := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
 	
 	add.Connect("clicked", func ()  {
 		paytype := payCombo.GetActiveText()
 		s, _ := value.GetText()
 		o, _ := obs.GetText()
 		if paytype == "" || s == "" {return}
-		widgets.AddRow(storage, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION, paytype, s, o)
+		widgets.AddRow(storage, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION, paytype, s, o, vl)
 	})
 
 	//End
 
 	controller.InitProject(db, handlers, clients, cep, cidade, estado, bairro, endereco,
-		 numero, complemento, status, observacoes, contrato)
+		 numero, complemento, status, observacoes, contrato, value, payCombo, obs, vl)
 	
 	//Funcionarios envolvidos, table with the name of the emploees
 	addEnviroment, err := gtk.ButtonNewWithLabel("Adicionar um ambiente a este projeto")
 	handler.Error("ui/Project.go >> addEnviroment, gtk.Button", err)
-	form.PackStart(addEnviroment, true, true, 10)
+	form.PackEnd(addEnviroment, true, true, 10)
 
 	//Variables
 	Envs := []controller.EnvFields{}
@@ -83,17 +97,15 @@ func addProjectPage(db *gorm.DB) (*gtk.Box) {
 
 	projectExpander.Add(form)
 	handlers.PackStart(projectExpander, false, false, 10)
+	projectExpander.SetExpanded(true)
 
 	scrollable.Add(handlers)
 	box.PackStart(scrollable, true, true, 0)
 
-	saveBtn, err := gtk.ButtonNewWithLabel("Salvar este Projeto")
-	handler.Error("ui/Project.go >> addProjectPage() >> saveBtn", err)
-	saveBtn.Connect("clicked", func ()  {
+	edit.Connect("clicked", func ()  {
 		controller.SaveProject(Envs, Expanders, storage)
 	})
 
-	box.PackEnd(saveBtn, false, false, 10)
 	return box
 }
 

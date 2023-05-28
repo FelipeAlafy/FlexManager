@@ -11,6 +11,12 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+const (
+	COLUMN_PAYMENT_TYPE = iota
+	COLUMN_VALUE
+	COLUMN_OBSERVATION
+)
+
 type ClientFields struct {
 	Nome 			*gtk.Entry
 	CPF 			*gtk.Entry
@@ -21,6 +27,7 @@ type ClientFields struct {
 	EstadoCivil 	*gtk.ComboBoxText
 	Telefone 		*gtk.Entry
 	WhatsApp 		*gtk.CheckButton
+	WhatsAppBtn		*gtk.Button
 	TelefoneAlt 	*gtk.Entry
 	Email 			*gtk.Entry
 	PaisNatal 		*gtk.Entry
@@ -41,7 +48,16 @@ type ProjectFields struct {
 	Observacoes 	*gtk.TextView
 	Valor 			*gtk.Entry
 	Contrato 		*gtk.CheckButton
+	Payment 		PaymentFields
 	Enviroments		[]EnviromentFields
+}
+
+type PaymentFields struct {
+	PayCombo *gtk.ComboBoxText
+	ValueEntry *gtk.Entry
+	ObsEntry *gtk.Entry
+	AddButton *gtk.Button
+	Store		*gtk.ListStore
 }
 
 type EnviromentFields struct {
@@ -52,7 +68,7 @@ type EnviromentFields struct {
 }
 
 
-func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *gorm.DB, save *gtk.Button, edit *gtk.Button, notebook *gtk.Notebook) {
+func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *gorm.DB, edit *gtk.Button, notebook *gtk.Notebook) {
 	//These two variables control the flow of when edit button has a specific action or another one
 	thisPage := notebook.GetNPages()
 	buttonState := false
@@ -96,12 +112,19 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 
 	f.Telefone.SetText(c.Telefone)
 	f.WhatsApp.SetActive(c.Whatsapp)
+	f.WhatsAppBtn.SetSensitive(c.Whatsapp)
 	f.TelefoneAlt.SetText(c.TelefoneAlt)
 	f.Email.SetText(c.Email)
 	f.PaisNatal.SetText(c.PaisNatal)
 	f.EstadoNatal.SetText(c.EstadoNatal)
 	f.CidadeNatal.SetText(c.CidadeNatal)
 	f.Project = make([]ProjectFields, len(c.Projects))
+
+	//Interactions
+	f.WhatsAppBtn.Connect("clicked", func ()  {
+		url := handler.GetPreFormatedWhatsappUrl(getDataFromEntry(f.Telefone))
+		handler.OpenInBrowser(url)
+	})
 
 	for i, p := range c.Projects {
 		projectName := fmt.Sprint("Projeto localizado em >> " + p.Cidade + ", " + p.Bairro + ", ", p.Endereco + " Nº ", p.Numero)
@@ -134,7 +157,21 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 
 		b, _ := fields.Observacoes.GetBuffer()
 		b.SetText(p.Observacoes)
-		fields.Valor.SetText(strings.ReplaceAll(fmt.Sprint(p.ValorProjeto), ".", ","))
+		
+		//LoadData for tree view
+		store, valorEntry, payCombo, obsEntry, addButton, vl := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
+
+		for _, pay := range p.Payments {
+			widgets.AddRow(store, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION,
+			pay.Way, handler.ConvertFloatIntoString(pay.Value), pay.Observation, vl)
+		}
+
+		fields.Payment.PayCombo = payCombo
+		fields.Payment.ValueEntry = valorEntry
+		fields.Payment.ObsEntry = obsEntry
+		fields.Payment.AddButton = addButton
+		fields.Payment.Store = store
+
 		fields.Contrato.SetActive(p.Contrato)
 
 		fields.Cep.Connect("activate", func ()  {
@@ -148,6 +185,8 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 			fields.Numero.SetText("")
 			fields.Complemento.SetText("")
 		})
+
+
 
 		fields.Enviroments = make([]EnviromentFields,len(p.Enviroments))
 
@@ -195,7 +234,6 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 	})
 
 	notebook.Connect("switch-page", func (_ *gtk.Notebook, _ *gtk.Widget, index int)  {
-		println("Index: ", index)
 		if index == thisPage {
 			if buttonState {
 				editMode(true, f)
@@ -315,6 +353,34 @@ func getModelResult(c ClientFields, clientDB database.Client) database.Client {
 			ne.ID = clientDB.Projects[i].Enviroments[i2].ID
 			np.Enviroments = append(np.Enviroments, ne)
 		}
+
+		//Get data from the store
+		p.Payment.Store.ForEach(func(model *gtk.TreeModel, path *gtk.TreePath, iter *gtk.TreeIter) bool {
+			if !p.Payment.Store.IterIsValid(iter) {return false}
+			paymentType, err := model.GetValue(iter, 0)
+			if err != nil {return false}
+			val, err := model.GetValue(iter, 1)
+			if err != nil {return false}
+			obs, err := model.GetValue(iter, 2)
+			if err != nil {return false}
+
+
+			way, err := paymentType.GetString()
+			if err != nil {return false}
+			value, err := val.GetString()
+			if err != nil {return false}
+			observation, err := obs.GetString()
+			if err != nil {return false}
+
+			npay := database.Payment {
+				Value: handler.ConvertStringIntoFloat(value),
+				Way: way,
+				Observation: observation,
+			}
+			np.Payments = append(np.Payments, npay)
+			return true
+		})
+
 		client.Projects = append(client.Projects, np)
 	}
 	return client
@@ -348,6 +414,11 @@ func editMode(isEditable bool, c ClientFields) {
 		p.Observacoes.SetSensitive(isEditable)
 		p.Valor.SetSensitive(isEditable)
 		p.Contrato.SetSensitive(isEditable)
+
+		p.Payment.PayCombo.SetSensitive(isEditable)
+		p.Payment.ValueEntry.SetSensitive(isEditable)
+		p.Payment.ObsEntry.SetSensitive(isEditable)
+		p.Payment.AddButton.SetSensitive(isEditable)
 
 		for _, e := range p.Enviroments {
 			e.Nome.SetSensitive(isEditable)

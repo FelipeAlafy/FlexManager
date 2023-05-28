@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"strconv"
-
 	"github.com/FelipeAlafy/Flex/database"
 	"github.com/FelipeAlafy/Flex/handler"
 	"github.com/gotk3/gotk3/gtk"
@@ -36,8 +34,10 @@ var observacoes 	*gtk.TextView
 var valor 			*gtk.Entry
 var contrato 		*gtk.CheckButton
 var handlers		*gtk.Box
-var PayForm			*gtk.Box
-
+var payValue		*gtk.Entry
+var payCombo		*gtk.ComboBoxText
+var payObservation	*gtk.Entry
+var ValLabel		*gtk.Label
 
 func InitProject(
 	gormDB *gorm.DB,
@@ -52,7 +52,12 @@ func InitProject(
 	co *gtk.Entry,
 	s *gtk.ComboBoxText,
 	o *gtk.TextView,
-	con *gtk.CheckButton) {
+	con *gtk.CheckButton,
+	payVal *gtk.Entry,
+	payC *gtk.ComboBoxText,	
+	payObs *gtk.Entry,
+	vl		*gtk.Label,
+	) {
 	dbProject = gormDB
 	handlers = hand
 	clientBox = cli
@@ -66,6 +71,10 @@ func InitProject(
 	status = s
 	observacoes = o
 	contrato = con
+	payValue = payVal
+	payCombo = payC
+	payObservation = payObs
+	ValLabel = vl
 
 	SyncClientComboBox()
 
@@ -125,27 +134,32 @@ func getModelForPayments(store *gtk.ListStore) []database.Payment {
 	payments := []database.Payment{}
 
 	store.ForEach(func(model *gtk.TreeModel, path *gtk.TreePath, iter *gtk.TreeIter) bool {
-		payType, _ := model.GetValue(iter, 0)
-		value, _ := model.GetValue(iter, 1)
-		obs, _ := model.GetValue(iter, 2)
+		payType, err := model.GetValue(iter, 0)
+		if err != nil {return false}
+		value, err := model.GetValue(iter, 1)
+		if err != nil {return false}
+		obs, err := model.GetValue(iter, 2)
+		if err != nil {return false}
 
-		va, _ := value.GetString()
-		
-		p, _ := payType.GetString()
-		v, _ := strconv.ParseFloat(va, 64)
-		o, _ := obs.GetString()
-		
+		v, err := value.GetString()
+		if err != nil {return false}
+		p, err := payType.GetString()
+		if err != nil {return false}
+		o, err := obs.GetString()
+		if err != nil {return false}
 
-		println("Type: ", p)
-		println("Value: ", v)
-		println("Observation: ", o)
 		payment := database.Payment{
-			Value: v,
+			Value: handler.ConvertStringIntoFloat(v),
 			Way: p,
 			Observation: o,
 		}
 		payments = append(payments, payment)
-		return true
+
+		if v == "" && p == "" {
+			return true
+		}
+
+		return false
 	})
 
 	return payments
@@ -184,6 +198,10 @@ func clearProjectPage(expanders []*gtk.Expander, storage *gtk.ListStore) {
 	b.SetText("")
 	valor.SetText("")
 	contrato.SetActive(false)
+	payCombo.SetActive(-1)
+	payValue.SetText("")
+	payObservation.SetText("")
+	ValLabel.SetText("0,00")
 	for _, e := range expanders {
 		handlers.Remove(e)
 	}

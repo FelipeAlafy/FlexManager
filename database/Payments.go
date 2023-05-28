@@ -13,3 +13,9 @@ type Payment struct {
 func (p Payment) Save(db *gorm.DB) {
 	db.Save(&p)
 }
+
+func (p Project) SearchForPayments(db *gorm.DB) []Payment {
+	payments := []Payment{}
+	db.Where("project_id = ?", p.ID).Find(&payments)
+	return payments
+}

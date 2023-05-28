@@ -34,6 +34,7 @@ func (c Client) SearchProjects(db *gorm.DB) []Project {
 
 	for p := 0; p < len(projects); p++ {
 		projects[p].Enviroments = projects[p].SearchForEnviroments(db)
+		projects[p].Payments = projects[p].SearchForPayments(db)
 	}
 
 	return projects
