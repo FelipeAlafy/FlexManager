@@ -31,17 +31,40 @@ func Search(name string, notebook *gtk.Notebook, edit *gtk.Button) *gtk.Box {
 	n := database.Client{Nome: name}
 	clients := n.Search(dbSearch)
 
-	for _, c := range clients {
-		mainBox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 5)
-		lbl, _ := gtk.LabelNew(c.Nome + "\nNasceu em: " + c.CidadeNatal)
+	for i, c := range clients {
+		mainBox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
+		lblBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+		
+		lbl, _ := gtk.LabelNew(c.Nome)
+		divider, _ := gtk.SeparatorNew(gtk.ORIENTATION_HORIZONTAL)
+
+		if i == 0 {
+			lbl.SetMarginTop(10)
+		}
+
+		lblBox.PackStart(lbl, true, true, 0)
+		if i != len(clients) -1 {
+			lblBox.PackStart(divider, false, false, 0)
+		}
+		
+		
 		btn, _ := gtk.ButtonNewFromIconName("go-next-symbolic", gtk.ICON_SIZE_BUTTON)
 		btn.SetRelief(gtk.RELIEF_NONE)
-		mainBox.PackStart(lbl, true, true, 5)
-		mainBox.PackEnd(btn, false, false, 5)
-		box.PackStart(mainBox, false, true, 5)
+		
+		mainBox.PackStart(lblBox, true, true, 0)
+		mainBox.PackEnd(btn, false, false, 0)
+		box.PackStart(mainBox, false, true, 0)
 
 		btn.Connect("clicked", func ()  {
-			makeTabForResult("Resultados para " + c.Nome, notebook, c, edit)
+			for _, c1 := range clients {
+				nome, _ := lbl.GetText()
+				if nome == c1.Nome {
+					makeTabForResult("Resultados para " + c1.Nome, notebook, c1, edit)
+				}
+			}
+		})
+		lbl.Connect("activate-current-link", func ()  {
+			println(lbl.GetText())
 		})
 	}
 	return box

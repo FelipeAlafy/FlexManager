@@ -10,7 +10,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 )
 
-func PreFormForPay(form *gtk.Box, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION int) (*gtk.ListStore, *gtk.Entry, *gtk.ComboBoxText, *gtk.Entry, *gtk.Button, *gtk.Label) {
+func PreFormForPay(form *gtk.Box, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION int) (*gtk.ListStore, *gtk.Entry, *gtk.ComboBoxText, *gtk.Entry, *gtk.Button, *gtk.Button, *gtk.Label) {
 	frame, err := gtk.FrameNew("Pagamento")
 	handler.Error("ui/widgets.go >> PreFormForPay >> frame", err)
 	
@@ -68,7 +68,7 @@ func PreFormForPay(form *gtk.Box, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSE
 	payBox.PackStart(bottomBox, false, false, 5)
 	frame.Add(payBox)
 	form.PackStart(frame, true, true, 10)
-	return storage, valor, payCombo, obs, add, vl
+	return storage, valor, payCombo, obs, add, remove, vl
 }
 
 func createColumn(name string, id int) *gtk.TreeViewColumn {
@@ -94,9 +94,10 @@ func setupTreeView(listStore *gtk.ListStore, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, 
 	tree.SetModel(listStore)
 	tree.SetHExpand(true)
 
-	pixbuf, _ := gdk.PixbufNewFromFileAtScale("resources/trash.svg", 30, 30, true)
+	pixbuf, _ := gdk.PixbufNewFromFileAtScale("resources/trash.svg", 20, 25, true)
 	image, _ := gtk.ImageNewFromPixbuf(pixbuf)
 	remove, _ := gtk.ButtonNew()
+	remove.SetMarginEnd(10)
 	remove.SetImage(image)
 
 	selected, _ := tree.GetSelection()

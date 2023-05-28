@@ -63,7 +63,7 @@ func addProjectPage(db *gorm.DB, edit *gtk.Button, notebook *gtk.Notebook) (*gtk
 	contrato := widgets.PreFormCheckBox("Projeto por contrato", form)
 	
 	//Payment
-	storage, value, payCombo, obs, add, vl  := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
+	storage, value, payCombo, obs, add, _, vl  := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
 	
 	add.Connect("clicked", func ()  {
 		paytype := payCombo.GetActiveText()
