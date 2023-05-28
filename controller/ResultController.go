@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/FelipeAlafy/Flex/database"
 	"github.com/FelipeAlafy/Flex/handler"
@@ -46,7 +45,6 @@ type ProjectFields struct {
 	Complemento 	*gtk.Entry
 	Status 			*gtk.ComboBoxText
 	Observacoes 	*gtk.TextView
-	Valor 			*gtk.Entry
 	Contrato 		*gtk.CheckButton
 	Payment 		PaymentFields
 	Enviroments		[]EnviromentFields
@@ -159,18 +157,28 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 		b.SetText(p.Observacoes)
 		
 		//LoadData for tree view
-		store, valorEntry, payCombo, obsEntry, addButton, vl := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
+		store, valorEntry, payCombo, obsEntry, addButton, removeButton, vl := widgets.PreFormForPay(form, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION)
 
 		for _, pay := range p.Payments {
 			widgets.AddRow(store, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION,
 			pay.Way, handler.ConvertFloatIntoString(pay.Value), pay.Observation, vl)
 		}
 
+		addButton.Connect("clicked", func ()  {
+			paytype := payCombo.GetActiveText()
+			s, _ := valorEntry.GetText()
+			o, _ := obsEntry.GetText()
+			if paytype == "" || s == "" {return}
+			widgets.AddRow(store, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSERVATION, paytype, s, o, vl)
+		})
+
 		fields.Payment.PayCombo = payCombo
 		fields.Payment.ValueEntry = valorEntry
 		fields.Payment.ObsEntry = obsEntry
 		fields.Payment.AddButton = addButton
 		fields.Payment.Store = store
+		addButton.SetSensitive(false)
+		removeButton.SetSensitive(false)
 
 		fields.Contrato.SetActive(p.Contrato)
 
@@ -185,8 +193,6 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 			fields.Numero.SetText("")
 			fields.Complemento.SetText("")
 		})
-
-
 
 		fields.Enviroments = make([]EnviromentFields,len(p.Enviroments))
 
@@ -265,7 +271,6 @@ func makeproject() (*gtk.Box, ProjectFields) {
 	[]string {"Inicial", "Pagamento Inicial Confirmado", "Em produção", "Instalado", "Pagamento Final Confirmado", "Finalizado"}, 
 	ProjectForm)
 	observacoes := widgets.PreFormTextView("Observações", ProjectForm)
-	valor := widgets.PreForm("Valor do projeto", ProjectForm)
 	contrato := widgets.PreFormCheckBox("Projeto por contrato", ProjectForm)
 	
 	fields := ProjectFields {
@@ -278,7 +283,6 @@ func makeproject() (*gtk.Box, ProjectFields) {
 		Complemento: complemento,
 		Status:      status,
 		Observacoes: observacoes,
-		Valor:       valor,
 		Contrato:    contrato,
 		Enviroments: []EnviromentFields{},
 	}
@@ -338,7 +342,6 @@ func getModelResult(c ClientFields, clientDB database.Client) database.Client {
 		np.Complemento = getDataFromEntry(p.Complemento)
 		np.Status = getDataFromComboBox(p.Status)
 		np.Observacoes = getDataFromTextView(p.Observacoes)
-		np.ValorProjeto = toFloat(strings.ReplaceAll(getDataFromEntry(p.Valor), ",", "."))
 		np.Contrato = p.Contrato.GetActive()
 
 		for i2, e := range p.Enviroments {
@@ -412,13 +415,12 @@ func editMode(isEditable bool, c ClientFields) {
 		p.Complemento.SetSensitive(isEditable)
 		p.Status.SetSensitive(isEditable)
 		p.Observacoes.SetSensitive(isEditable)
-		p.Valor.SetSensitive(isEditable)
 		p.Contrato.SetSensitive(isEditable)
 
 		p.Payment.PayCombo.SetSensitive(isEditable)
 		p.Payment.ValueEntry.SetSensitive(isEditable)
 		p.Payment.ObsEntry.SetSensitive(isEditable)
-		p.Payment.AddButton.SetSensitive(isEditable)
+		p.Payment.AddButton.SetSensitive(false) //Should change when edit function will be avaliable
 
 		for _, e := range p.Enviroments {
 			e.Nome.SetSensitive(isEditable)
