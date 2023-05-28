@@ -230,6 +230,11 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 			edit.SetImage(image)
 		} else {
 			model := getModelResult(f, c)
+
+			for _, p := range model.Projects {
+				p.DeleteAllPayments(dbResult)
+			}
+
 			model.Save(dbResult)
 			editMode(false, f)
 			buttonState = false

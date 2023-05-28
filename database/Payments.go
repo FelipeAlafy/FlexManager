@@ -19,3 +19,7 @@ func (p Project) SearchForPayments(db *gorm.DB) []Payment {
 	db.Where("project_id = ?", p.ID).Find(&payments)
 	return payments
 }
+
+func (p Project) DeleteAllPayments(db *gorm.DB) {
+	db.Where("project_id = ?", p.ID).Delete(&Payment{})
+}
