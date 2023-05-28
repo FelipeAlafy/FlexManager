@@ -2,7 +2,6 @@ package controller
 
 import (
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/FelipeAlafy/Flex/handler"
@@ -39,13 +38,6 @@ func getDataFromCheckBox(c *gtk.CheckButton) bool {
 
 func toInt(s string) int {
 	i, err := strconv.Atoi(s)
-	handler.Error("controller/gtkHandler.go >> toInt() strconv.Atoi", err)
+	if err != nil {return 0}
 	return i
-}
-
-func toFloat(s string) float64 {
-	parser := strings.ReplaceAll(s, ",", ".")
-	v, err := strconv.ParseFloat(parser, 64)
-	handler.Error("controller/gtkHandler.go >> toFloat while trying to convert", err)
-	return v
 }

@@ -55,6 +55,7 @@ type PaymentFields struct {
 	ValueEntry *gtk.Entry
 	ObsEntry *gtk.Entry
 	AddButton *gtk.Button
+	RemoveButton *gtk.Button
 	Store		*gtk.ListStore
 }
 
@@ -70,6 +71,12 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 	//These two variables control the flow of when edit button has a specific action or another one
 	thisPage := notebook.GetNPages()
 	buttonState := false
+
+	notebook.Connect("page-removed", func (_ *gtk.Notebook, _ *gtk.Widget, pageRemoved uint)  {
+		println("A page was remove the index was ", pageRemoved)
+		if pageRemoved < uint(thisPage) {thisPage = thisPage - 1}
+		println("this page now have the index of ", thisPage)
+	})
 
 	f.Nome.SetText(c.Nome)
 	f.CPF.SetText(c.Cpf)
@@ -176,9 +183,8 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 		fields.Payment.ValueEntry = valorEntry
 		fields.Payment.ObsEntry = obsEntry
 		fields.Payment.AddButton = addButton
+		fields.Payment.RemoveButton = removeButton
 		fields.Payment.Store = store
-		addButton.SetSensitive(false)
-		removeButton.SetSensitive(false)
 
 		fields.Contrato.SetActive(p.Contrato)
 
@@ -230,6 +236,11 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 			edit.SetImage(image)
 		} else {
 			model := getModelResult(f, c)
+
+			for _, p := range model.Projects {
+				p.DeleteAllPayments(dbResult)
+			}
+
 			model.Save(dbResult)
 			editMode(false, f)
 			buttonState = false
@@ -240,14 +251,12 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 	})
 
 	notebook.Connect("switch-page", func (_ *gtk.Notebook, _ *gtk.Widget, index int)  {
-		if index == thisPage {
-			if buttonState {
-				editMode(true, f)
-				buttonState = true
-				image, err := gtk.ImageNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
-				handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
-				edit.SetImage(image)
-			}
+		if index == thisPage && buttonState {
+			editMode(true, f)
+			buttonState = true
+			image, err := gtk.ImageNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
+			handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
+			edit.SetImage(image)
 		} else {
 			editMode(false, f)
 			image, err := gtk.ImageNewFromIconName("document-edit-symbolic", gtk.ICON_SIZE_BUTTON)
@@ -381,7 +390,12 @@ func getModelResult(c ClientFields, clientDB database.Client) database.Client {
 				Observation: observation,
 			}
 			np.Payments = append(np.Payments, npay)
-			return true
+			
+			if value == "" && way == "" {
+				return true
+			}
+	
+			return false
 		})
 
 		client.Projects = append(client.Projects, np)
@@ -420,7 +434,8 @@ func editMode(isEditable bool, c ClientFields) {
 		p.Payment.PayCombo.SetSensitive(isEditable)
 		p.Payment.ValueEntry.SetSensitive(isEditable)
 		p.Payment.ObsEntry.SetSensitive(isEditable)
-		p.Payment.AddButton.SetSensitive(false) //Should change when edit function will be avaliable
+		p.Payment.AddButton.SetSensitive(isEditable)
+		p.Payment.RemoveButton.SetSensitive(isEditable)
 
 		for _, e := range p.Enviroments {
 			e.Nome.SetSensitive(isEditable)
