@@ -28,6 +28,12 @@ func GetAllProjects(db *gorm.DB) []Project {
 	return projects
 }
 
+func GetProjectsByLastEdit(db *gorm.DB) []Project {
+	projects := []Project{}
+	db.Order("updated_at desc").Find(&projects).Limit(5)
+	return projects
+}
+
 func (c Client) SearchProjects(db *gorm.DB) []Project {
 	projects := []Project{}
 	db.Where("client_id = ?", c.ID).Find(&projects)

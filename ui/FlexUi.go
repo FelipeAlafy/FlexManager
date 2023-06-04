@@ -19,7 +19,7 @@ func OnActivate(app *gtk.Application, db *gorm.DB) {
 	win, err := gtk.ApplicationWindowNew(app)
 	handler.Error("ui/handler/FlexUi.go >> Line 11", err)
 
-	win.SetDefaultSize(900, 700)
+	win.SetDefaultSize(1200, 700)
 	win.SetPosition(gtk.WIN_POS_CENTER)
 
 	pixbuf, _ := gdk.PixbufNewFromFile("resources/logo.jpeg")
@@ -69,15 +69,11 @@ func ui(win *gtk.ApplicationWindow, searchbar *gtk.SearchEntry, db *gorm.DB) {
 		return tab
 	} 
 
-	homeBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
 	lbl1, _ := gtk.LabelNew("Inicio")
-	pixbuf, _ := gdk.PixbufNewFromFileAtScale("resources/pageUnderConstruction.svg", 400, 400, true)
-	image, _ := gtk.ImageNewFromPixbuf(pixbuf)
-	underconstructionlabel, _ := gtk.LabelNew("Está página ainda está em construção.\nPor favor clique nos icones na barra superior para acessar as funções.")
-	homeBox.PackStart(image, true, true, 10)
-	homeBox.PackStart(underconstructionlabel, true, false, 10)
-
+	homeBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0) 
+	homeBox.PackStart(Home(db, editButton, notebook), true, true, 0)
 	notebook.AppendPage(homeBox, lbl1)
+	notebook.ShowAll()
 
 	win.Add(notebook)
 

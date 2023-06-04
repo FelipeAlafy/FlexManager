@@ -58,6 +58,13 @@ func (c Client) Search(db *gorm.DB) []Client {
 	return clients
 }
 
+func Search(db *gorm.DB, id uint) Client {
+	client := Client{}
+	db.First(&client, id)
+	client.Projects = client.SearchProjects(db)
+	return client
+}
+
 func (c Client) AddProject(db *gorm.DB, p Project) {
 	c.Projects = append(c.Projects, p)
 	db.Save(&c)

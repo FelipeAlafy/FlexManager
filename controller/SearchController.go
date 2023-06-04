@@ -25,7 +25,7 @@ func InitSearch(Searchbar *gtk.SearchEntry, notebook *gtk.Notebook, dbs *gorm.DB
 }
 
 func Search(name string, notebook *gtk.Notebook, edit *gtk.Button) *gtk.Box {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
+	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	handler.Error("ui/SearchPopup.go >> box", err)
 
 	n := database.Client{Nome: name}
@@ -50,6 +50,11 @@ func Search(name string, notebook *gtk.Notebook, edit *gtk.Button) *gtk.Box {
 		
 		btn, _ := gtk.ButtonNewFromIconName("go-next-symbolic", gtk.ICON_SIZE_BUTTON)
 		btn.SetRelief(gtk.RELIEF_NONE)
+
+		ButtonProv, _ := gtk.CssProviderNew()
+		ButtonProv.LoadFromPath("resources/buttons.css")
+		ButtonContext, _ := btn.GetStyleContext()
+		ButtonContext.AddProvider(ButtonProv, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 		
 		mainBox.PackStart(lblBox, true, true, 0)
 		mainBox.PackEnd(btn, false, false, 0)
