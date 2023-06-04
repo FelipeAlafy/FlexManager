@@ -189,8 +189,12 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 		fields.Contrato.SetActive(p.Contrato)
 
 		fields.Cep.Connect("activate", func ()  {
+			println("Trying to get the cep")
 			address, err := cep.GetText()
-			handler.Error("controller/ClientController.go >> address, cep.GetText()", err)
+			if err != nil {
+				address = "0000000"
+			}
+			// handler.Error("controller/ClientController.go >> address, cep.GetText()", err)
 			cepMap := handler.GetAddress(address)
 			fields.Cidade.SetText(cepMap.Localidade)
 			fields.Bairro.SetText(cepMap.Bairro)

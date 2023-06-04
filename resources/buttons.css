@@ -1,0 +1,20 @@
+button {
+    border-radius: 50px;
+}
+
+button:hover {
+    animation-name: buttontrans;
+    animation-duration: 4s;
+}
+
+@keyframes buttontrans {
+    from {
+        border-color: gray;
+        background-color: white;
+    }
+    to {
+        border-color: aqua;
+        background-color: darkgray;
+        color: aqua;
+    }
+}

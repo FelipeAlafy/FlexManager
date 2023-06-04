@@ -9,7 +9,7 @@ func getHeaderbar() (*gtk.HeaderBar, []*gtk.Button, *gtk.SearchEntry) {
 	bar, err := gtk.HeaderBarNew()
 	handler.Error("ui/handler/Headerbar.go >> Line 10", err)
 
-	bar.SetTitle("Flex Manager") //this should be dynamic by showing the name of the enterprise
+	bar.SetTitle("Flex - Casa Design") //this should be dynamic by showing the name of the enterprise
 	bar.SetShowCloseButton(true)
 
 	client, err := gtk.ButtonNewFromIconName("contact-new-symbolic", gtk.ICON_SIZE_BUTTON)
