@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/FelipeAlafy/Flex/database"
+	"github.com/FelipeAlafy/Flex/handler"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/jinzhu/gorm"
 )
@@ -28,8 +29,7 @@ var db *gorm.DB
 
 func ClientInit(n *gtk.Entry, c *gtk.Entry, r *gtk.Entry, nas *gtk.Calendar, s *gtk.ComboBoxText,
 	tp *gtk.ComboBoxText, ec *gtk.ComboBoxText, t *gtk.Entry, w *gtk.CheckButton, ta *gtk.Entry,
-	e *gtk.Entry, pn *gtk.Entry, en *gtk.Entry, cn*gtk.Entry, button *gtk.Button,
-	database *gorm.DB) {
+	e *gtk.Entry, pn *gtk.Entry, en *gtk.Entry, cn*gtk.Entry, button *gtk.Button, notebook *gtk.Notebook, database *gorm.DB) {
 	nome = n
 	cpf = c
 	rg = r
@@ -46,6 +46,18 @@ func ClientInit(n *gtk.Entry, c *gtk.Entry, r *gtk.Entry, nas *gtk.Calendar, s *
 	cidadeNatal = cn
 	edit = button
 	db = database
+	thisPage := notebook.GetNPages()
+	
+	notebook.Connect("page-removed", func (_ *gtk.Notebook, _ *gtk.Widget, pageRemoved uint)  {
+		if pageRemoved < uint(thisPage) {thisPage = thisPage - 1}
+	})
+
+	notebook.Connect("switch-page", func (_ *gtk.Notebook, _ *gtk.Widget, index int)  {
+		if thisPage != index {return}
+		image, err := gtk.ImageNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
+		handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
+		edit.SetImage(image)
+	})
 
 	edit.Connect("clicked", func () {
 		println("Trying to save a client into database")

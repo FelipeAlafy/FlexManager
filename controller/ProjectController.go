@@ -75,6 +75,18 @@ func InitProject(
 	payCombo = payC
 	payObservation = payObs
 	ValLabel = vl
+	thisPage := notebook.GetNPages()
+
+	notebook.Connect("page-removed", func (_ *gtk.Notebook, _ *gtk.Widget, pageRemoved uint)  {
+		if pageRemoved < uint(thisPage) {thisPage = thisPage - 1}
+	})
+
+	notebook.Connect("switch-page", func (_ *gtk.Notebook, _ *gtk.Widget, index int)  {
+		if thisPage != index {return}
+		image, err := gtk.ImageNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
+		handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
+		editButton.SetImage(image)
+	})
 
 	SyncClientComboBox()
 

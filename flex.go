@@ -11,9 +11,6 @@ import (
 )
 
 func main() {
-	//Runnable folder
-	os.Mkdir("Runnable", 0700)
-
 	db := database.Run()
 
 	app, err := gtk.ApplicationNew("com.github.FelipeAlafy.FlexManager", glib.APPLICATION_FLAGS_NONE)

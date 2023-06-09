@@ -18,20 +18,6 @@ const (
 )
 
 func addProjectPage(db *gorm.DB, edit *gtk.Button, notebook *gtk.Notebook) (*gtk.Box) {
-	thisPage := notebook.GetNPages()
-
-	notebook.Connect("switch-page", func (_ *gtk.Notebook, _ *gtk.Widget, index int)  {
-		if index == thisPage {
-			image, err := gtk.ImageNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
-			handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
-			edit.SetImage(image)
-		} else {
-			image, err := gtk.ImageNewFromIconName("document-edit-symbolic", gtk.ICON_SIZE_BUTTON)
-			handler.Error("controller/ResultController.go >> notebook.Connect() >> image new from icon name", err)
-			edit.SetImage(image)
-		}
-	})
-
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	handler.Error("ui/Project.go >> box, gtk.BoxNew: ", err)
 	

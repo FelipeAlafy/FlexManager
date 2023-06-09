@@ -63,8 +63,6 @@ func PreFormForPay(form *gtk.Box, COLUMN_PAYMENT_TYPE, COLUMN_VALUE, COLUMN_OBSE
 	headerPayBox.PackStart(remove, false, false, 0)
 	payBox.PackStart(tree, false, true, 10)
 
-	
-
 	payBox.PackStart(bottomBox, false, false, 5)
 	frame.Add(payBox)
 	form.PackStart(frame, true, true, 10)
