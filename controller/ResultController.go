@@ -261,7 +261,7 @@ func InitResult(f ClientFields, c database.Client, handlers *gtk.Box, dbResult *
 			image, err := gtk.ImageNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
 			handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
 			edit.SetImage(image)
-		} else {
+		} else if index == thisPage && !buttonState{
 			editMode(false, f)
 			image, err := gtk.ImageNewFromIconName("document-edit-symbolic", gtk.ICON_SIZE_BUTTON)
 			handler.Error("controller/ResultController.go >> notebook.Connect() >> image new from icon name", err)

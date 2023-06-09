@@ -7,6 +7,7 @@ import (
 )
 
 func ConvertStringIntoFloat(str string) float64 {
+	str = strings.ReplaceAll(str, "R$ ", "")
 	v, err := strconv.ParseFloat(strings.ReplaceAll(str, ",", "."), 64)
 	if err != nil {return 0.0}
 	return v
@@ -29,4 +30,8 @@ func GetPreFormatedWhatsappUrl(str string) string {
 	
 	
 	return nstr
+}
+
+func GetCashFormatted(value float64) string  {
+	return fmt.Sprintf("R$ %s", ConvertFloatIntoString(value))
 }

@@ -23,6 +23,15 @@ func HomeInit(homedb *gorm.DB, mainBox, projects *gtk.Box, edit *gtk.Button, not
 	HomeDB = homedb
 	editButton = edit
 	notebook = note
+	thisPage := 0
+
+	notebook.Connect("switch-page", func (_ *gtk.Notebook, _ *gtk.Widget, index int)  {
+		if thisPage != index {return}
+		image, err := gtk.ImageNewFromIconName("document-edit-symbolic", gtk.ICON_SIZE_BUTTON)
+		handler.Error("controller/ResultController.go >> edit.Connect() >> image new from icon name", err)
+		editButton.SetImage(image)
+	})
+
 
 	populate(getProjects(), projects)
 }

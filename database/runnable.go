@@ -12,6 +12,7 @@ func Run() *gorm.DB {
 	db.AutoMigrate(&Employees{})
 	db.AutoMigrate(&Enviroment{})
 	db.AutoMigrate(&Payment{})
+	db.AutoMigrate(&Expense{})
 
 	return db
 }
