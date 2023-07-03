@@ -2,6 +2,8 @@ package main
 
 import (
 	"os"
+	"log"
+	"github.com/joho/godotenv"
 
 	"github.com/FelipeAlafy/Flex/database"
 	"github.com/FelipeAlafy/Flex/handler"
