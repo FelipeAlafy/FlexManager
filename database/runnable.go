@@ -4,8 +4,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func Run() *gorm.DB {
-	db := Connect()
+func Run(USER, PASS, HOST, PORT, DB string) *gorm.DB {
+	db := Connect(USER, PASS, HOST, PORT, DB)
 	//Auto create and update tables
 	db.AutoMigrate(&Client{})
 	db.AutoMigrate(&Project{})

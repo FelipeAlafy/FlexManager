@@ -11,7 +11,12 @@ import (
 )
 
 func main() {
-	db := database.Run()
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf(">> Error while loading .env file")
+	}
+
+	db := database.Run(os.Getenv("FLEXMANAGERUSER"), os.Getenv("FLEXMANAGERPASS"), os.Getenv("FLEXMANAGERHOST"), os.Getenv("FLEXMANAGERPORT"), os.Getenv("FLEXMANAGERDB"))
 
 	app, err := gtk.ApplicationNew("com.github.FelipeAlafy.FlexManager", glib.APPLICATION_FLAGS_NONE)
 	handler.Error("ui/flex.go >> Line 10", err)
